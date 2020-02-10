@@ -3,11 +3,12 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExcess;
 
+import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -28,8 +29,34 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with excess. Implement by cycles
-        return null;
+         /* return filtered list with correctly exceeded field
+           version 1.0
+        */
+
+        List<UserMealWithExcess> listWithExceed = new ArrayList<>();
+        Map<LocalDate, Integer> dates = new HashMap<>();
+
+        for (UserMeal el : meals) {
+            Integer caloriesSum = dates.getOrDefault(el.getDateTime().toLocalDate(), 0);
+            dates.put(el.getDateTime().toLocalDate(), caloriesSum + el.getCalories());
+            LocalTime localTime = el.getDateTime().toLocalTime();
+            if (TimeUtil.isBetweenInclusive(localTime, startTime, endTime)) {
+                listWithExceed.add(new UserMealWithExcess(el.getDateTime(), el.getDescription(), el.getCalories(), false));
+            }
+        }
+        try {
+            for (UserMealWithExcess el : listWithExceed) {
+                //reflection is used because the exceed field is private final :(
+                Field nameField = el.getClass().getDeclaredField("exceed");
+                nameField.setAccessible(true);
+                //public function getDateTime() is inserted into UserMealWithExceed class in order to get a value of a date :(
+               nameField.set(el, dates.get(el.getDateTime().toLocalDate()) > caloriesPerDay);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return listWithExceed;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
