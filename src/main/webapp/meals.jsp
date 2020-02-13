@@ -42,9 +42,12 @@
                 </td>
                 <td>${meal.description}</td>
                 <td>${meal.calories}</td>
+                <td><a href="meals?operation=update&id=${meal.id}">Edit</a></td>
+                <td><a href="meals?operation=delete&id=${meal.id}">Delete</a></td>
             </tr>
         </c:forEach>
     </table>
+    <h3><a  href="meals?operation=create">Add a meal</a></h3>
 </section>
 </body>
 </html>
