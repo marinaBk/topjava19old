@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -26,25 +25,30 @@ public class MealServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         log.debug("redirect to meals");
         String operation = request.getParameter("operation");
-        if (operation == null) {
+
+        if (operation != null && (operation.equals("create") || operation.equals("update")))  {
+            Meal meal = null;
+                 if (operation.equals("create")) {
+                     meal = new Meal(null, "Вкуснятина", 0);
+                     log.debug("create new");
+                 } else if (operation.equals("update")) {
+                     meal = storage.read(Integer.valueOf(request.getParameter("id")));
+                     log.debug("{}", "update ".concat(meal.getId().toString()));
+                 }
+//            log.debug("{}", meal.isNotExist() ? "create new" : "update ".concat(meal.getId().toString()));
+                 request.setAttribute("meal", meal);
+                 request.getRequestDispatcher("/mealUpdate.jsp").forward(request, response);
+        } else  if (operation != null && operation.equals("delete")){
+            String id = request.getParameter("id");
+            log.debug("delete {}", id);
+            storage.delete(Integer.valueOf(id));
+            response.sendRedirect("meals");
+        } else {
             log.debug("redirect to meals");
             request.setAttribute("meals",
                     MealsUtil.nonfilteredByStreams(storage.readAll().stream().collect(Collectors.toList()), 2000));
             request.getRequestDispatcher("/meals.jsp").forward(request, response);
-        } else if (operation.equals("delete")) {
-            String id = request.getParameter("id");
-            log.debug("delete {}" , id);
-            storage.delete(Integer.valueOf(id));
-            response.sendRedirect("meals");
-        } else {
-            Meal meal = operation.equals("create") ? new Meal(
-                    null, "Вкуснятина", 0) :
-                    storage.read(Integer.valueOf(request.getParameter("id")));
-            log.debug("{}", meal.isNotExist()? "create new" : "update ".concat(meal.getId().toString()) );
-            request.setAttribute("meal", meal);
-            request.getRequestDispatcher("/mealUpdate.jsp").forward(request, response);
         }
-
 //        response.sendRedirect("meals.jsp");
     }
 

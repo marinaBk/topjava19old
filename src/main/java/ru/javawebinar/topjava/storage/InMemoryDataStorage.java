@@ -4,16 +4,14 @@ import ru.javawebinar.topjava.model.Meal;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class InMemoryDataStorage implements DataStorage {
-    private  ConcurrentHashMap<Integer, Meal> mealsHashMap = new ConcurrentHashMap<>();
+    //private  ConcurrentHashMap<Integer, Meal> mealsHashMap = new ConcurrentHashMap<>();
+    Map<Integer, Meal> mealsHashMap = new ConcurrentHashMap<> ();
     private AtomicInteger currentID = new AtomicInteger(0);
 
      {
@@ -29,8 +27,8 @@ public class InMemoryDataStorage implements DataStorage {
     @Override
     public Meal create(Meal meal) {
        if (Objects.nonNull(meal)) {
-         if (meal.isNotExist()) {
-             meal.setId(currentID.incrementAndGet());
+         if (meal.isNotExist() || meal.getId() > currentID.get() || meal.getId() <=0) {
+                meal.setId(currentID.incrementAndGet());
 
          }
            return mealsHashMap.put(meal.getId(),meal);
@@ -59,8 +57,10 @@ public class InMemoryDataStorage implements DataStorage {
     public Collection<Meal> readAll() {
         return mealsHashMap.values();
     }
-
-    public ConcurrentHashMap<Integer, Meal> getMealsHashMap() {
+/*
+    public Map<Integer, Meal> getMealsHashMap() {
         return mealsHashMap;
     }
+
+ */
 }
