@@ -3,14 +3,15 @@ package ru.javawebinar.topjava.repository.inmemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.model.AbstractNamedEntity;
+import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
 
 
 @Repository
@@ -18,6 +19,11 @@ public class InMemoryUserRepository implements UserRepository {
     private static final Logger log = LoggerFactory.getLogger(InMemoryUserRepository.class);
     private Map<Integer, User> repository = new ConcurrentHashMap<>();
     private AtomicInteger counter = new AtomicInteger(0);
+
+    {
+        save(new User(1,"User","user@google.com","12345", Role.ROLE_USER));
+        save(new User(1,"Admin","admin@google.com","abcde", Role.ROLE_ADMIN));
+    }
 
     @Override
     public boolean delete(int id) {
@@ -35,19 +41,14 @@ public class InMemoryUserRepository implements UserRepository {
             return user;
         }
         // handle case: update, but not present in storage
-
-        User oldUserOrNull = repository.getOrDefault(user.getId(), null);
-        if (oldUserOrNull == null) {
-            return null;
-        }
-        return repository.compute(user.getId(), (id, oldMeal) -> user);
+        return repository.computeIfPresent(user.getId(), (id, oldMeal) -> user);
     }
 
     @Override
     public User get(int id) {
         log.info("get {}", id);
 
-        return repository.getOrDefault(id, null);
+        return repository.get(id);
     }
 
     @Override
@@ -55,22 +56,19 @@ public class InMemoryUserRepository implements UserRepository {
         log.info("getAll");
         List<User> users = new ArrayList(repository.values());
 
-        users.sort((c1, c2) -> c1.getName().compareTo(c2.getName()));
+        users.sort(Comparator.comparing(AbstractNamedEntity::getName)
+                .thenComparingInt(AbstractNamedEntity::getId));
         return  users;
-   //     return Collections.emptyList();
     }
 
     @Override
     public User getByEmail(String email) {
         log.info("getByEmail {}", email);
 
-        User user = repository.entrySet()
+        User user = repository.values()
                 .stream()
-                .filter(entry -> Objects.equals(entry.getValue().getEmail(), email))
-                .map(Map.Entry::getValue)
+                .filter(entry -> Objects.equals(entry.getEmail(), email))
                 .findFirst().orElse(null);
-
-   //             .collect(Collectors.toList()).get(0);
         return user;
     }
 }
