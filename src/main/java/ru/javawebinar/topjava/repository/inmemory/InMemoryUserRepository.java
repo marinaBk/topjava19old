@@ -21,8 +21,8 @@ public class InMemoryUserRepository implements UserRepository {
     private AtomicInteger counter = new AtomicInteger(0);
 
     {
-        save(new User(1,"User","user@google.com","12345", Role.ROLE_USER));
-        save(new User(1,"Admin","admin@google.com","abcde", Role.ROLE_ADMIN));
+        save(new User(null,"User","user@google.com","12345", Role.ROLE_USER));
+        save(new User(null,"Admin","admin@google.com","abcde", Role.ROLE_ADMIN));
     }
 
     @Override
@@ -65,10 +65,9 @@ public class InMemoryUserRepository implements UserRepository {
     public User getByEmail(String email) {
         log.info("getByEmail {}", email);
 
-        User user = repository.values()
+        return repository.values()
                 .stream()
                 .filter(entry -> Objects.equals(entry.getEmail(), email))
                 .findFirst().orElse(null);
-        return user;
     }
 }
