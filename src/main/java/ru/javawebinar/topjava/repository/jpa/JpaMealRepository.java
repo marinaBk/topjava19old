@@ -35,9 +35,9 @@ public class JpaMealRepository implements MealRepository {
 
             if (updatedMeal  == null
                     || (updatedMeal.getId()  == meal.getId())
-                    && (updatedMeal.getDescription().equals(meal.getDescription())
-                    && (updatedMeal.getDateTime().compareTo(meal.getDateTime())==0)
-                    && (updatedMeal.getCalories() == meal.getCalories()))) {
+                    && ((updatedMeal.getDescription().equals(meal.getDescription())
+                    || (updatedMeal.getDateTime().compareTo(meal.getDateTime())==0)
+                    || (updatedMeal.getCalories() == meal.getCalories())))) {
                 return null;
            }
             meal.setUser(ref);
