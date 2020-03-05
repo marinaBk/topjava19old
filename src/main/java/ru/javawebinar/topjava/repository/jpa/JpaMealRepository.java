@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+
 @Repository
 @Transactional(readOnly = true)
 public class JpaMealRepository implements MealRepository {
@@ -26,23 +27,21 @@ public class JpaMealRepository implements MealRepository {
     @Transactional
     public Meal save(Meal meal, int userId) {
         User ref = em.getReference(User.class, userId);
+        if (ref == null) {
+            return null;
+        }
         if (meal.isNew()) {
-            meal.setUser(ref);
+             meal.setUser(ref);
             em.persist(meal);
             return meal;
         } else {
-         Meal  updatedMeal =  em.getReference(Meal.class, meal.getId());
-
-            if (updatedMeal  == null
-                    || (updatedMeal.getId()  == meal.getId())
-                    && ((updatedMeal.getDescription().equals(meal.getDescription())
-                    || (updatedMeal.getDateTime().compareTo(meal.getDateTime())==0)
-                    || (updatedMeal.getCalories() == meal.getCalories())))) {
-                return null;
-           }
-            meal.setUser(ref);
-            return em.merge(meal);
+            if (get(meal.getId(), userId) != null) {
+                meal.setUser(ref);
+                return em.merge(meal);
+            }
+            return null;
         }
+   //
     }
 
     @Override
